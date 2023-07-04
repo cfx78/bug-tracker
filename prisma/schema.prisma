@@ -1,0 +1,66 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+type Comment {
+  text String
+}
+
+enum Category {
+  BUG
+  FEATURE
+  TODO
+  OTHER
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Status {
+  OPEN
+  IN_PROGRESS
+  DONE
+}
+
+model User {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  email           String   @unique
+  name            String?
+  password        String
+  role            Role     @default(USER)
+  createdTickets  Ticket[] @relation("Created_By")
+  assignedTickets Ticket[] @relation("Assigned_To")
+}
+
+model Ticket {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  createdBy   User      @relation("Created_By", fields: [createdById], references: [id])
+  createdById String    @db.ObjectId
+  title       String    @unique
+  description String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  category    Category
+  priority    Priority
+  status      Status    @default(OPEN)
+  assignee    User?     @relation("Assigned_To", fields: [assigneeId], references: [id])
+  assigneeId  String?   @db.ObjectId
+  comments    Comment[]
+}
